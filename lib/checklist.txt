@@ -1,0 +1,54 @@
+A] Signup
+B] Login
+C] Home Page
+  1. Search/Filter Products
+  2. Trending Product Chips (Widget)
+  3. Popular Products 
+  4. Product Categories (Widget)
+  5. Product Cards
+
+D] Product Details Page
+  1. Background color
+  2. Shoe image
+  3. Headers
+  4. Rating
+  5. Description
+  6. Sizes
+  7. Colors
+  8. Price
+  9. [ADD TO CART] => Cart
+
+E] Cart Page
+  1. Product Card List
+   a. Background
+   b. Shoe Image
+   c. Headers
+   d. Size and Color
+   e. Price
+   f. [Add/Subtract]
+   g. [Remove]
+  2. Total Price
+  3. [NEXT] => Checkout
+
+F] Order Tracking/Status
+
+
+============== Admin ======================
+
+Dashboard Overview: This screen shows an overview of sales, user metrics, popular products, and a log of recent activity including orders, signups, and reviews.
+
+User Management: It allows for managing user accounts with search, filter, and sort functionalities, and includes options to view, edit, suspend, reactivate, or delete user accounts and send notifications.
+
+Product Management: This screen offers features for managing the product catalog, including tools for searching, filtering, adding, editing, and categorizing products, as well as inventory tracking.
+
+Order Management: It provides facilities for order oversight with the ability to search, filter, and sort orders, view detailed information, and manage shipping and payment statuses.
+
+Settings & Configuration: The screen encompasses options for setting up general store settings, payment methods, shipping rates, tax configurations, and notification templates.
+
+Analytics Overview: This is an analytics dashboard presenting sales trends, user activity, and product performance data, including demographics and inventory metrics.
+
+    
+
+
+
+ 
