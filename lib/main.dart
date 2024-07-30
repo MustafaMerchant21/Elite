@@ -8,6 +8,7 @@ import 'package:elite/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:elite/features/auth/presentation/pages/wrapper.dart';
 import 'package:elite/features/auth/presentation/widgets/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:elite/core/theme/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +26,7 @@ Future<void> main() async {
   // Firebase initialization
   await Firebase.initializeApp();
   final firebaseAuth = FirebaseAuth.instance;
+  final firebaseStorage = FirebaseStorage.instance;
   final db = FirebaseFirestore.instance;
   runApp(MultiBlocProvider(
     providers: [
@@ -32,12 +34,12 @@ Future<void> main() async {
         create: (_) => AuthBloc(
           userSignup: UserSignup(
             AuthRepositoryImpl(
-              AuthRemoteDatasourceImpl(firebaseAuth),
+              AuthRemoteDatasourceImpl(firebaseAuth, firebaseStorage),
             ),
           ),
           userLogin: UserLogin(
           AuthRepositoryImpl(
-            AuthRemoteDatasourceImpl(firebaseAuth)
+            AuthRemoteDatasourceImpl(firebaseAuth, firebaseStorage)
           )
         ),
         ),
