@@ -16,14 +16,13 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           appBar: AppBar(
             backgroundColor: AppPalette.backgroundColor,
             title: const Text(
               "Users",
-              style:
-              TextStyle(fontFamily: "$font Expanded Heavy", fontSize: 15),
+              style: TextStyle(fontFamily: "$font Expanded Heavy", fontSize: 15),
             ),
             centerTitle: true,
             foregroundColor: AppPalette.textColor,
@@ -54,8 +53,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     FocusScope.of(context).unfocus();
                   },
                   decoration: InputDecoration(
-                    prefixIcon:
-                    const Icon(Icons.search, color: AppPalette.textColor),
+                    prefixIcon: const Icon(Icons.search, color: AppPalette.textColor),
                     hintText: 'Search users...',
                     filled: true,
                     fillColor: AppPalette.backgroundColor,
@@ -76,25 +74,23 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               TabBar(
                 overlayColor: WidgetStateProperty.all<Color>(
                     AppPalette.primaryColor.withAlpha(10)),
-                labelStyle:
-                const TextStyle(fontFamily: "$font Semi Expanded Black"),
+                labelStyle: const TextStyle(fontFamily: "$font Semi Expanded Black"),
                 labelColor: AppPalette.primaryColor,
                 unselectedLabelColor: AppPalette.primaryColor.withOpacity(0.5),
                 indicatorColor: AppPalette.primaryColor,
-                tabs: [
-                  const Tab(text: 'Customers'),
-                  const Tab(text: 'Admin'),
-                  const Tab(text: 'Deleted'),
+                tabs: const [
+                  Tab(text: 'Customers'),
+                  Tab(text: 'Admin'),
+                  Tab(text: 'Deleted'),
                 ],
               ),
               // Tab Bar View
               const Expanded(
                 child: TabBarView(
                   children: [
-                    _Customers(),
-                    // _AdminUsers(),
-                    // _DeletedUsers(),
-                    Center(child: Text('Deleted Users Content')),
+                    UsersList(isAdmin: false, isDeleted: false,),
+                    UsersList(isAdmin: true, isDeleted: false,),
+                    UsersList(isAdmin: true, isDeleted: true,),
                   ],
                 ),
               ),
@@ -106,17 +102,21 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   }
 }
 
-class _Customers extends StatefulWidget {
-  const _Customers();
+class UsersList extends StatefulWidget {
+  final bool isAdmin;
+  final bool isDeleted;
+
+  const UsersList({super.key, required this.isAdmin, required this.isDeleted});
 
   @override
-  State<_Customers> createState() => _CustomersState();
+  State<UsersList> createState() => _UsersListState();
 }
 
-class _CustomersState extends State<_Customers> {
+class _UsersListState extends State<UsersList> {
   late Future<void> _fetchDataFuture;
   final List<DocumentSnapshot> _data = [];
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  final Set<String> _deletingUsers = {}; // Track users being deleted
 
   @override
   void initState() {
@@ -125,19 +125,41 @@ class _CustomersState extends State<_Customers> {
   }
 
   Future<void> _fetchData() async {
-    try {
-      QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection('users').get();
+    if (widget.isDeleted) {
+      try {
+        QuerySnapshot snapshot = await FirebaseFirestore.instance
+            .collection('deleted_users')
+            .get();
+      
+        setState(() {
+          _data.clear();  // Clear the data list to prevent duplication
+          for (var doc in snapshot.docs) {
+            _data.add(doc);
+            _listKey.currentState?.insertItem(_data.length - 1);
+          }
+        });
+      } catch (e) {
+        print(e);
+      }
+    }else{
+      try {
+        QuerySnapshot snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('admin', isEqualTo: widget.isAdmin)
+            .get();
 
-      setState(() {
-        _data.clear();  // Clear the data list to prevent duplication
-        for (var doc in snapshot.docs) {
-          _data.add(doc);
-          _listKey.currentState?.insertItem(_data.length - 1);
-        }
-      });
-    } catch (e) {
-      print(e);
+        setState(() {
+          _data.clear();  // Clear the data list to prevent duplication
+          for (var doc in snapshot.docs) {
+            _data.add(doc);
+            _listKey.currentState?.insertItem(_data.length - 1);
+          }
+        });
+      } catch (e) {
+        print(e);
+      }
+
+
     }
   }
 
@@ -146,15 +168,23 @@ class _CustomersState extends State<_Customers> {
   }
 
   Future<void> _deleteUser(DocumentSnapshot doc, int index) async {
+    setState(() {
+      _deletingUsers.add(doc.id);
+    });
+
     try {
       await FirebaseFirestore.instance.collection('users').doc(doc.id).delete();
+      if (!widget.isDeleted) {
+        FirebaseFirestore.instance.collection('deleted_users').doc(doc.id).set(doc.data() as Map<String,Object?>);
+      }
       setState(() {
         _listKey.currentState?.removeItem(
           index,
-              (context, animation) => _buildItem(doc, animation, index),
+              (context, animation) => _buildItem(doc, animation, index, isRemoving: true),
           duration: const Duration(milliseconds: 600),
         );
         _data.removeAt(index);
+        _deletingUsers.remove(doc.id);
       });
     } catch (e) {
       print(e);
@@ -166,88 +196,106 @@ class _CustomersState extends State<_Customers> {
     }
   }
 
-  Widget _buildItem(DocumentSnapshot doc, Animation<double> animation, int index) {
+  Widget _buildItem(DocumentSnapshot doc, Animation<double> animation, int index, {bool isRemoving = false}) {
+    final bool isDeleting = _deletingUsers.contains(doc.id);
+
     return SizeTransition(
       sizeFactor: animation,
-      child: Row(
+      child: Stack(
         children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppPalette.productCardsBackgroundColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.all(16.0),
-              margin: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage(
-                        'assets/images/logo_full_circle.png'),
-                    backgroundColor: AppPalette.productCardsBackgroundColor,
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppPalette.productCardsBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          doc['name'].toString(),
-                          style: const TextStyle(
-                              fontFamily: '$font Expanded Black',
-                              fontSize: 12,
-                              color: AppPalette.primaryColor),
+                  padding: const EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 30,
+                        backgroundImage: AssetImage(
+                            'assets/images/logo_full_circle.png'),
+                        backgroundColor: AppPalette.productCardsBackgroundColor,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              doc['name'].toString(),
+                              style: const TextStyle(
+                                  fontFamily: '$font Expanded Black',
+                                  fontSize: 12,
+                                  color: AppPalette.primaryColor),
+                            ),
+                            const SizedBox(height: 5,),
+                            Text(
+                              doc['email'].toString(),
+                              style: TextStyle(
+                                fontFamily: '$font Expanded Black',
+                                fontSize: 10,
+                                color: AppPalette.primaryColor.withAlpha(90),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 5,),
-                        Text(
-                          doc['email'].toString(),
-                          style: TextStyle(
-                            fontFamily: '$font Expanded Black',
-                            fontSize: 10,
-                            color: AppPalette.primaryColor.withAlpha(90),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Image.asset(
-                      'assets/images/arrow_right.png',
-                      width: 20,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              await _deleteUser(doc, index);
-            },
-            child: Container(
-              width: 25,
-              height: double.minPositive + 82,
-              decoration: const BoxDecoration(
-                color: AppPalette.removeCartItemColor,
-                borderRadius: BorderRadius.horizontal(
-                  left: Radius.circular(200),
-                  right: Radius.circular(50),
-                ),
-              ),
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image.asset(
-                    '$imgPath/cross.png',
-                    width: 20,
+                      ),
+                      // const Spacer(),
+                      // Padding(
+                      //   padding: const EdgeInsets.all(16),
+                      //   child: Image.asset(
+                      //     'assets/images/arrow_right.png',
+                      //     width: 20,
+                      //   ),
+                      // ),
+                    ],
                   ),
                 ),
               ),
-            ),
+              widget.isDeleted
+                  ? const SizedBox.shrink()
+                  : GestureDetector(
+                onTap: () async {
+                  await _deleteUser(doc, index);
+                },
+                child: Container(
+                  width: 25,
+                  height: double.minPositive + 82,
+                  decoration: const BoxDecoration(
+                    color: AppPalette.removeCartItemColor,
+                    borderRadius: BorderRadius.horizontal(
+                      left: Radius.circular(200),
+                      right: Radius.circular(50),
+                    ),
+                  ),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.asset(
+                        '$imgPath/cross.png',
+                        width: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
+          if (isDeleting)
+            Positioned.fill(
+              child: Container(
+                color: AppPalette.backgroundColor.withOpacity(0.5),
+                child: Center(
+                  child: LoadingAnimationWidget.horizontalRotatingDots(
+                      color: AppPalette.textColor, size: 30),
+                ),
+              ),
+            ),
         ],
       ),
     );
