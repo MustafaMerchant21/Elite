@@ -28,6 +28,7 @@ class AuthRemoteDatasourceImpl extends AuthRemoteDatasource {
         email: email,
         password: password,
       );
+
       return credential.user!.uid;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -55,6 +56,12 @@ class AuthRemoteDatasourceImpl extends AuthRemoteDatasource {
       await credential.user!.updateProfile(displayName: name);
       // Reload the user to get the updated profile information
       await credential.user!.reload();
+      await FirebaseFirestore.instance.collection('users').add({
+        'name': name,
+        'email':email,
+        'admin':false,
+        'profileImage':''
+      });
       return credential.user!.uid.toString();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
