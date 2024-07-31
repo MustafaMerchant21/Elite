@@ -75,6 +75,36 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/images/Male avatars/42.png
+    - assets/images/Male avatars/43.png
+    - assets/images/Male avatars/46.png
+    - assets/images/Male avatars/49.png
+    - assets/images/Male avatars/53.png
+    - assets/images/Male avatars/54.png
+    - assets/images/Male avatars/55.png
+    - assets/images/Male avatars/59.png
+    - assets/images/Male avatars/64.png
+    - assets/images/Male avatars/65.png
+    - assets/images/Male avatars/Avatar=11.png
+    - assets/images/Male avatars/Avatar=12.png
+    - assets/images/Male avatars/Avatar=13.png
+    - assets/images/Male avatars/Avatar=17.png
+    - assets/images/Male avatars/Avatar=19.png
+    - assets/images/Male avatars/Avatar=2.png
+    - assets/images/Male avatars/Avatar=22.png
+    - assets/images/Male avatars/Avatar=24.png
+    - assets/images/Male avatars/Avatar=26.png
+    - assets/images/Male avatars/Avatar=29.png
+    - assets/images/Male avatars/Avatar=3.png
+    - assets/images/Male avatars/Avatar=31.png
+    - assets/images/Male avatars/Avatar=33.png
+    - assets/images/Male avatars/Avatar=34.png
+    - assets/images/Male avatars/Avatar=36.png
+    - assets/images/Male avatars/Avatar=37.png
+    - assets/images/Male avatars/Avatar=5.png
+    - assets/images/Male avatars/Avatar=8.png
+    - assets/images/Male avatars/
+    - assets/images/Female avatars/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
