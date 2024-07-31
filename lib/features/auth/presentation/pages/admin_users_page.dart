@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elite/core/constants.dart';
 import 'package:elite/core/theme/palette.dart';
+import 'package:elite/features/auth/presentation/widgets/dialogue_box.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -12,6 +13,9 @@ class AdminUsersPage extends StatefulWidget {
 }
 
 class _AdminUsersPageState extends State<AdminUsersPage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +26,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             backgroundColor: AppPalette.backgroundColor,
             title: const Text(
               "Users",
-              style: TextStyle(fontFamily: "$font Expanded Heavy", fontSize: 15),
+              style:
+                  TextStyle(fontFamily: "$font Expanded Heavy", fontSize: 15),
             ),
             centerTitle: true,
             foregroundColor: AppPalette.textColor,
@@ -33,68 +38,105 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 color: AppPalette.primaryColor,
               ),
               onPressed: () => Navigator.of(context).pop(),
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(
-                    AppPalette.productCardsBackgroundColor),
-              ),
             ),
           ),
-          body: Column(
-            children: [
-              // Search Bar
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  style: const TextStyle(
-                    fontFamily: "$font Semi Expanded Black",
-                    color: AppPalette.primaryColor,
-                  ),
-                  onTapOutside: (PointerDownEvent event) {
-                    FocusScope.of(context).unfocus();
-                  },
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: AppPalette.textColor),
-                    hintText: 'Search users...',
-                    filled: true,
-                    fillColor: AppPalette.backgroundColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                          color: AppPalette.primaryColor,
-                          width: 1,
-                          style: BorderStyle.solid,
-                          strokeAlign: 1),
-                    ),
-                    contentPadding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                  ),
-                ),
-              ),
-              // Tab Bar
-              TabBar(
-                overlayColor: WidgetStateProperty.all<Color>(
-                    AppPalette.primaryColor.withAlpha(10)),
-                labelStyle: const TextStyle(fontFamily: "$font Semi Expanded Black"),
-                labelColor: AppPalette.primaryColor,
-                unselectedLabelColor: AppPalette.primaryColor.withOpacity(0.5),
-                indicatorColor: AppPalette.primaryColor,
-                tabs: const [
-                  Tab(text: 'Customers'),
-                  Tab(text: 'Admin'),
-                  Tab(text: 'Deleted'),
-                ],
-              ),
-              // Tab Bar View
-              const Expanded(
-                child: TabBarView(
+          body: Expanded(
+            child: Column(
+              children: [
+                // Search Bar
+                Row(
                   children: [
-                    UsersList(isAdmin: false, isDeleted: false,),
-                    UsersList(isAdmin: true, isDeleted: false,),
-                    UsersList(isAdmin: true, isDeleted: true,),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: TextField(
+                          controller: _searchController,
+                          style: const TextStyle(
+                            fontFamily: "$font Semi Expanded Black",
+                            color: AppPalette.primaryColor,
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                          onTapOutside: (PointerDownEvent event) {
+                            FocusScope.of(context).unfocus();
+                          },
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.search,
+                                color: AppPalette.textColor),
+                            hintText: 'Search users...',
+                            filled: true,
+                            fillColor: AppPalette.backgroundColor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                  color: AppPalette.primaryColor,
+                                  width: 1,
+                                  style: BorderStyle.solid,
+                                  strokeAlign: 1),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 16),
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        if (!(_searchQuery == '' || _searchQuery == ' ')) {
+                          setState(() {
+                            _searchQuery = '';
+                            _searchController.clear();
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.clear_rounded),
+                      color: AppPalette.primaryColor,
+                      splashColor: AppPalette.primaryColor.withAlpha(20),
+                      tooltip: 'Clear',
+
+                    )
                   ],
                 ),
-              ),
-            ],
+                // Tab Bar
+                TabBar(
+                  overlayColor: WidgetStateProperty.all<Color>(
+                      AppPalette.primaryColor.withAlpha(10)),
+                  labelStyle:
+                      const TextStyle(fontFamily: "$font Semi Expanded Black"),
+                  labelColor: AppPalette.primaryColor,
+                  unselectedLabelColor:
+                      AppPalette.primaryColor.withOpacity(0.5),
+                  indicatorColor: AppPalette.primaryColor,
+                  tabs: const [
+                    Tab(text: 'Customers'),
+                    Tab(text: 'Admin'),
+                    Tab(text: 'Deleted'),
+                  ],
+                ),
+                // Tab Bar View
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      UsersList(
+                          isAdmin: false,
+                          isDeleted: false,
+                          searchQuery: _searchQuery),
+                      UsersList(
+                          isAdmin: true,
+                          isDeleted: false,
+                          searchQuery: _searchQuery),
+                      UsersList(
+                          isAdmin: true,
+                          isDeleted: true,
+                          searchQuery: _searchQuery),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -105,8 +147,13 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
 class UsersList extends StatefulWidget {
   final bool isAdmin;
   final bool isDeleted;
+  final String searchQuery;
 
-  const UsersList({super.key, required this.isAdmin, required this.isDeleted});
+  const UsersList(
+      {super.key,
+      required this.isAdmin,
+      required this.isDeleted,
+      required this.searchQuery});
 
   @override
   State<UsersList> createState() => _UsersListState();
@@ -124,42 +171,46 @@ class _UsersListState extends State<UsersList> {
     _fetchDataFuture = _fetchData();
   }
 
+  @override
+  void didUpdateWidget(covariant UsersList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchQuery != widget.searchQuery) {
+      _fetchDataFuture = _fetchData();
+    }
+  }
+
   Future<void> _fetchData() async {
-    if (widget.isDeleted) {
-      try {
-        QuerySnapshot snapshot = await FirebaseFirestore.instance
-            .collection('deleted_users')
-            .get();
-      
-        setState(() {
-          _data.clear();  // Clear the data list to prevent duplication
-          for (var doc in snapshot.docs) {
-            _data.add(doc);
-            _listKey.currentState?.insertItem(_data.length - 1);
-          }
-        });
-      } catch (e) {
-        print(e);
-      }
-    }else{
-      try {
-        QuerySnapshot snapshot = await FirebaseFirestore.instance
+    QuerySnapshot snapshot;
+    try {
+      if (widget.isDeleted) {
+        snapshot =
+            await FirebaseFirestore.instance.collection('deleted_users').get();
+      } else {
+        snapshot = await FirebaseFirestore.instance
             .collection('users')
             .where('admin', isEqualTo: widget.isAdmin)
             .get();
-
-        setState(() {
-          _data.clear();  // Clear the data list to prevent duplication
-          for (var doc in snapshot.docs) {
-            _data.add(doc);
-            _listKey.currentState?.insertItem(_data.length - 1);
-          }
-        });
-      } catch (e) {
-        print(e);
       }
 
+      List<DocumentSnapshot> filteredDocs = snapshot.docs;
+      if (widget.searchQuery.isNotEmpty) {
+        filteredDocs = filteredDocs.where((doc) {
+          final name = doc['name'].toString().toLowerCase();
+          final email = doc['email'].toString().toLowerCase();
+          final query = widget.searchQuery.toLowerCase();
+          return name.contains(query) || email.contains(query);
+        }).toList();
+      }
 
+      setState(() {
+        _data.clear();
+        for (var doc in filteredDocs) {
+          _data.add(doc);
+          _listKey.currentState?.insertItem(_data.length - 1);
+        }
+      });
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -171,16 +222,23 @@ class _UsersListState extends State<UsersList> {
     setState(() {
       _deletingUsers.add(doc.id);
     });
-
     try {
       await FirebaseFirestore.instance.collection('users').doc(doc.id).delete();
-      if (!widget.isDeleted) {
-        FirebaseFirestore.instance.collection('deleted_users').doc(doc.id).set(doc.data() as Map<String,Object?>);
-      }
+      widget.isDeleted
+          ? await FirebaseFirestore.instance
+              .collection('deleted_users')
+              .doc(doc.id)
+              .delete()
+          : await FirebaseFirestore.instance
+              .collection('deleted_users')
+              .doc(doc.id)
+              .set(doc.data() as Map<String, Object?>);
+
       setState(() {
         _listKey.currentState?.removeItem(
           index,
-              (context, animation) => _buildItem(doc, animation, index, isRemoving: true),
+          (context, animation) =>
+              _buildItem(doc, animation, index, isRemoving: true),
           duration: const Duration(milliseconds: 600),
         );
         _data.removeAt(index);
@@ -196,13 +254,35 @@ class _UsersListState extends State<UsersList> {
     }
   }
 
-  Widget _buildItem(DocumentSnapshot doc, Animation<double> animation, int index, {bool isRemoving = false}) {
+  void _showDeleteConfirmationDialog(DocumentSnapshot doc, int index) {
+    showDialog(
+      barrierDismissible: true,
+      useSafeArea: true,
+      context: context,
+      builder: (BuildContext context) {
+        return CustomDialogue(
+          title: 'Delete User',
+          content: 'Are you sure you want to delete this user?',
+          onConfirm: () {
+            Navigator.of(context).pop(); // Close the dialog
+            _deleteUser(doc, index);
+          }, isLoading: false,
+        );
+      },
+    );
+  }
+
+
+  Widget _buildItem(
+      DocumentSnapshot doc, Animation<double> animation, int index,
+      {bool isRemoving = false}) {
     final bool isDeleting = _deletingUsers.contains(doc.id);
 
     return SizeTransition(
       sizeFactor: animation,
       child: Stack(
         children: [
+          // User Card
           Row(
             children: [
               Expanded(
@@ -215,10 +295,14 @@ class _UsersListState extends State<UsersList> {
                   margin: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 30,
-                        backgroundImage: AssetImage(
-                            'assets/images/logo_full_circle.png'),
+                        backgroundImage: doc['profileImage'] != null &&
+                                doc['profileImage'].isNotEmpty
+                            ? NetworkImage(doc['profileImage'])
+                            : const AssetImage(
+                                    'assets/images/logo_full_circle.png')
+                                as ImageProvider,
                         backgroundColor: AppPalette.productCardsBackgroundColor,
                       ),
                       Padding(
@@ -230,10 +314,12 @@ class _UsersListState extends State<UsersList> {
                               doc['name'].toString(),
                               style: const TextStyle(
                                   fontFamily: '$font Expanded Black',
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   color: AppPalette.primaryColor),
                             ),
-                            const SizedBox(height: 5,),
+                            const SizedBox(
+                              height: 5,
+                            ),
                             Text(
                               doc['email'].toString(),
                               style: TextStyle(
@@ -245,24 +331,12 @@ class _UsersListState extends State<UsersList> {
                           ],
                         ),
                       ),
-                      // const Spacer(),
-                      // Padding(
-                      //   padding: const EdgeInsets.all(16),
-                      //   child: Image.asset(
-                      //     'assets/images/arrow_right.png',
-                      //     width: 20,
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
               ),
-              widget.isDeleted
-                  ? const SizedBox.shrink()
-                  : GestureDetector(
-                onTap: () async {
-                  await _deleteUser(doc, index);
-                },
+              GestureDetector(
+                onTap: () => _showDeleteConfirmationDialog(doc,index),
                 child: Container(
                   width: 25,
                   height: double.minPositive + 82,
@@ -304,27 +378,33 @@ class _UsersListState extends State<UsersList> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: _refresh,
-      color: AppPalette.backgroundColor,
       backgroundColor: AppPalette.primaryColor,
-      child: FutureBuilder(
+      color: AppPalette.backgroundColor,
+      onRefresh: _refresh,
+      child: FutureBuilder<void>(
         future: _fetchDataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  LoadingAnimationWidget.horizontalRotatingDots(
-                      color: AppPalette.textColor, size: 30),
-                ],
-              ),
+              child: LoadingAnimationWidget.horizontalRotatingDots(
+                  color: AppPalette.textColor, size: 50),
             );
           } else if (snapshot.hasError) {
-            return const Center(
+            return Center(
               child: Text(
-                "Error Fetching data",
-                style: TextStyle(color: AppPalette.textColor),
+                'Error: ${snapshot.error}',
+                style: const TextStyle(
+                    color: AppPalette.primaryColor,
+                    fontFamily: "$font Expanded Heavy"),
+              ),
+            );
+          } else if (_data.isEmpty) {
+            return Center(
+              child: Text(
+                'No users found',
+                style: TextStyle(
+                    color: AppPalette.primaryColor.withAlpha(80),
+                    fontFamily: "$font Semi Expanded Heavy"),
               ),
             );
           } else {
@@ -335,7 +415,7 @@ class _UsersListState extends State<UsersList> {
                 if (index < _data.length) {
                   return _buildItem(_data[index], animation, index);
                 } else {
-                  return const SizedBox.shrink();  // Return an empty widget if index is out of bounds
+                  return const SizedBox.shrink();
                 }
               },
             );
