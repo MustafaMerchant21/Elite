@@ -9,7 +9,7 @@ class AdminDashboardCard extends StatelessWidget {
   const AdminDashboardCard({super.key, required this.title, required this.value});
   static _textStyle({required bool bold}) => TextStyle(
         color: AppPalette.primaryColor,
-        fontSize: bold ? 22 : 14,
+        fontSize: bold ? 18 : 12,
         fontFamily: bold ? "$font Expanded Heavy" : "$font Semi Expanded Bold",
       );
 
