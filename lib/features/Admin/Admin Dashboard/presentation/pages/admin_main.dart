@@ -1,8 +1,11 @@
+import 'dart:ui';
+
 import 'package:elite/core/theme/palette.dart';
 import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_analytics_page.dart';
 import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_dashboard_page.dart';
 import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_orders_page.dart';
 import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_settings_page.dart';
+import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_users_page.dart';
 import 'package:flutter/material.dart';
 
 const Color bottomNavBgColor = Color(0xFF17203A);
@@ -22,7 +25,7 @@ class _AdminHomePageState extends State<AdminMain> with SingleTickerProviderStat
     const AdminDashboardPage(),
     const AdminOrdersPage(),
     const AdminAnalyticsPage(),
-    const AdminSettingsPage(),
+    const AdminUsersPage(),
   ];
 
   List<NavModel> bottomNavItems = [
@@ -39,8 +42,8 @@ class _AdminHomePageState extends State<AdminMain> with SingleTickerProviderStat
       name: "Analytics",
     ),
     NavModel(
-      src: "assets/images/settings_dark.png",
-      name: "Settings",
+      src: "assets/images/users.png",
+      name: "Users",
     ),
   ];
 
@@ -60,10 +63,13 @@ class _AdminHomePageState extends State<AdminMain> with SingleTickerProviderStat
     setState(() {
       selectedNavIndex = index;
     });
-    _pageController.animateToPage(
+    // _pageController.animateToPage(
+    //   index,
+    //   duration: const Duration(milliseconds: 300),
+    //   curve: Curves.easeInOut,
+    // );
+    _pageController.jumpToPage(
       index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
     );
   }
 
@@ -79,60 +85,58 @@ class _AdminHomePageState extends State<AdminMain> with SingleTickerProviderStat
         },
         children: pages,
       ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          // padding: const EdgeInsets.all(8),
-          margin: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            // color: AppPalette.primaryColor.withOpacity(0.8),
-            color: Colors.white,
-            borderRadius: const BorderRadius.all(Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                color: bottomNavBgColor.withOpacity(0.05),
-                offset: const Offset(0, 20),
-                blurRadius: 20,
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(
-              bottomNavItems.length,
-                  (index) {
-                final navItem = bottomNavItems[index];
-                return Expanded(
-                  child: Tooltip(
-                    message: bottomNavItems[index].name,
-                    child: GestureDetector(
-                      onTap: () => _onNavItemTapped(index),
-                      child: Container(
-                        // color: Colors.deepPurple,
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: Opacity(
-                                opacity: selectedNavIndex == index ? 1 : 0.5,
-                                child: NavIcon(navItem: navItem),
-                              ),
+      bottomNavigationBar: Container(
+        // padding: const EdgeInsets.all(8),
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          // color: AppPalette.primaryColor.withOpacity(0.8),
+          color: Colors.white,
+          borderRadius: const BorderRadius.all(Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: bottomNavBgColor.withOpacity(0.05),
+              offset: const Offset(0, 20),
+              blurRadius: 20,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            bottomNavItems.length,
+                (index) {
+              final navItem = bottomNavItems[index];
+              return Expanded(
+                child: Tooltip(
+                  message: bottomNavItems[index].name,
+                  child: GestureDetector(
+                    onTap: () => _onNavItemTapped(index),
+                    child: Container(
+                      color: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      width: double.infinity,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: Opacity(
+                              opacity: selectedNavIndex == index ? 1 : 0.5,
+                              child: NavIcon(navItem: navItem),
                             ),
-                            SizedBox(
-                              height: selectedNavIndex == index ? 5 : 0,
-                            ),
-                            AnimatedBar(isActive: selectedNavIndex == index),
-                          ],
-                        ),
+                          ),
+                          SizedBox(
+                            height: selectedNavIndex == index ? 5 : 0,
+                          ),
+                          AnimatedBar(isActive: selectedNavIndex == index),
+                        ],
                       ),
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
