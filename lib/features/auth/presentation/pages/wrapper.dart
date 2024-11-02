@@ -36,14 +36,13 @@ class Wrapper extends StatelessWidget {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   if (snapshot.data!.uid == 'bgC5H0OFYJfgNed6Mg766zt4Fmd2'){
-                    return AdminMain();
+                    return const AdminMain();
                   }
                   return const HomePage();
                 } else if (snapshot.connectionState == ConnectionState.waiting){
                   return LoadingAnimationWidget.halfTriangleDot(
                       color: AppPalette.textColor, size: 30);
-                }
-                else {
+                } else {
                   return const SignupPage();
                 }
               },

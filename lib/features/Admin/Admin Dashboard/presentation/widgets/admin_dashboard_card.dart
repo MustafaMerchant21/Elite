@@ -9,7 +9,7 @@ class AdminDashboardCard extends StatelessWidget {
   const AdminDashboardCard({super.key, required this.title, required this.value});
   static _textStyle({required bool bold}) => TextStyle(
         color: AppPalette.primaryColor,
-        fontSize: bold ? 18 : 12,
+        fontSize: bold ? 16 : 12,
         fontFamily: bold ? "$font Expanded Heavy" : "$font Semi Expanded Bold",
       );
 
@@ -18,10 +18,10 @@ class AdminDashboardCard extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
+        margin:  const EdgeInsets.symmetric(horizontal: 2),
         decoration: const BoxDecoration(
           color: AppPalette.productCardsBackgroundColor,
           borderRadius: BorderRadius.all(Radius.circular(12)),
-
         ),
         child: Column(
           children: [

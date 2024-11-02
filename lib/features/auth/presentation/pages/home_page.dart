@@ -1,3 +1,4 @@
+import 'package:elite/features/auth/presentation/pages/signup_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -28,5 +29,6 @@ class _HomePageState extends State<HomePage> {
 
   signOut() async{
     await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_)=>SignupPage()));
   }
 }

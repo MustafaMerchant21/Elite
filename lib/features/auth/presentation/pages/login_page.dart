@@ -1,4 +1,6 @@
+import 'package:elite/core/common/widgets/loader.dart';
 import 'package:elite/core/theme/palette.dart';
+import 'package:elite/core/utils/show_snackbar.dart';
 import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_dashboard_page.dart';
 import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_main.dart';
 import 'package:elite/features/auth/presentation/bloc/auth_bloc.dart';
@@ -24,27 +26,28 @@ class _LoginPageState extends State<LoginPage> {
   late User? user;
   final emailController = TextEditingController();
   final pwdController = TextEditingController();
+
   static _loginButtons(String image, Function()? onPress) => SizedBox(
-    width: 70,
-    child: InkWell(
-      onTap: onPress,
-      splashColor: AppPalette.textColor,
-      child: IconButton(
-        tooltip: image.toUpperCase(),
-        onPressed: onPress,
-        icon: Image.asset(
-          '$imgPath/$image.png',
+        width: 70,
+        child: InkWell(
+          onTap: onPress,
+          splashColor: AppPalette.textColor,
+          child: IconButton(
+            tooltip: image.toUpperCase(),
+            onPressed: onPress,
+            icon: Image.asset(
+              '$imgPath/$image.png',
+            ),
+            iconSize: 30,
+          ),
         ),
-        iconSize: 30,
-      ),
-    ),
-  );
+      );
 
   static _toLogin(Color color) => TextStyle(
-    fontFamily: '$font Semi Expanded Heavy',
-    fontSize: 15,
-    color: color,
-  );
+        fontFamily: '$font Semi Expanded Heavy',
+        fontSize: 15,
+        color: color,
+      );
   final formKey = GlobalKey<FormState>();
 
   @override
@@ -103,156 +106,162 @@ class _LoginPageState extends State<LoginPage> {
                       child: Center(
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
-                          child: BlocListener<AuthBloc, AuthState>(
+                          child: BlocConsumer<AuthBloc, AuthState>(
                             listener: (context, state) {
-                              if (state is AuthSuccess) {
-                                user = FirebaseAuth.instance.currentUser;
-
-                                /// Todo: User verification
-
-                                if (user!.uid == 'bgC5H0OFYJfgNed6Mg766zt4Fmd2' ) {
-                                  Navigator.of(context).pushReplacement(
+                              user = FirebaseAuth.instance.currentUser;
+                              /// Todo: User verification
+                              if (state is AuthFailure) {
+                                showSnackBar(context, state.message);
+                              } else if (state is AuthSuccess) {
+                                if (user!.uid ==
+                                    'bgC5H0OFYJfgNed6Mg766zt4Fmd2') {
+                                  Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(
                                       builder: (context) => const AdminMain(),
                                     ),
+                                    (route) => false,
                                   );
-                                }else{
-                                  Navigator.of(context).pushReplacement(
+                                } else {
+                                  Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(
                                       builder: (context) => const HomePage(),
                                     ),
+                                    (route) => false,
                                   );
                                 }
-                              } else if (state is AuthFailure) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(state.message),
-                                  ),
-                                );
                               }
                             },
-                            child: Form(
-                              key: formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    height: 15,
-                                  ),
-                                  const Text(
-                                    "Login",
-                                    style: TextStyle(
-                                      color: AppPalette.primaryColor,
-                                      fontSize: 36,
-                                      fontFamily: '$font Semi Expanded Heavy',
+                            builder: (context, state) {
+                              if (state is AuthLoading) {
+                                return const Loader();
+                              }
+                              return Form(
+                                key: formKey,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(
+                                      height: 15,
                                     ),
-                                  ),
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  AuthField(
-                                    text: "Email",
-                                    xpand: false,
-                                    controller: emailController,
-                                  ),
-                                  const SizedBox(
-                                    height: 15,
-                                  ),
-                                  AuthField(
-                                    text: "Password",
-                                    xpand: false,
-                                    controller: pwdController,
-                                    isObscure: true,
-                                  ),
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  Row(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _loginButtons(
-                                          'google login', googleLogin()),
-                                      const SizedBox(
-                                        width: 10,
+                                    const Text(
+                                      "Login",
+                                      style: TextStyle(
+                                        color: AppPalette.primaryColor,
+                                        fontSize: 36,
+                                        fontFamily: '$font Semi Expanded Heavy',
                                       ),
-                                      _loginButtons(
-                                          'facebook login', facbookLogin()),
-                                      _loginButtons('apple login', appleLogin()),
-                                    ],
-                                  ),
-                                  Row(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text("Need an account?",
-                                          style: _toLogin(
-                                              AppPalette.productBrandColor)),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pushReplacement(
-                                            CupertinoPageRoute(
-                                              builder: (context) {
-                                                return const SignupPage();
-                                              },
-                                            ),
-                                          );
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    AuthField(
+                                      text: "Email",
+                                      xpand: false,
+                                      controller: emailController,
+                                    ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    AuthField(
+                                      text: "Password",
+                                      xpand: false,
+                                      controller: pwdController,
+                                      isObscure: true,
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        _loginButtons(
+                                            'google login', googleLogin()),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        _loginButtons(
+                                            'facebook login', facbookLogin()),
+                                        _loginButtons(
+                                            'apple login', appleLogin()),
+                                      ],
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text("Need an account?",
+                                            style: _toLogin(
+                                                AppPalette.productBrandColor)),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pushReplacement(
+                                              CupertinoPageRoute(
+                                                builder: (context) {
+                                                  return const SignupPage();
+                                                },
+                                              ),
+                                            );
+                                          },
+                                          style: ButtonStyle(
+                                            overlayColor:
+                                                WidgetStateProperty.all(
+                                                    const Color(0x12171a1e)),
+                                          ),
+                                          child: Text(
+                                            "Register",
+                                            style:
+                                                _toLogin(AppPalette.textColor),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    Align(
+                                      alignment: Alignment.center,
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          if (formKey.currentState!
+                                              .validate()) {
+                                            print('=== Login Initiated ==');
+                                            context.read<AuthBloc>().add(
+                                                  AuthLogin(
+                                                    email: emailController.text
+                                                        .trim(),
+                                                    password: pwdController.text
+                                                        .trim(),
+                                                  ),
+                                                );
+                                            print('=== User Logged In! ==');
+                                          } else {
+                                            print('=== User not validated! ==');
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content:
+                                                    Text('User not validated!'),
+                                              ),
+                                            );
+                                          }
                                         },
-                                        style: ButtonStyle(
-                                          overlayColor:
-                                          WidgetStateProperty.all(
-                                              const Color(0x12171a1e)),
-                                        ),
-                                        child: Text(
-                                          "Register",
-                                          style:
-                                          _toLogin(AppPalette.textColor),
-                                        ),
+                                        child: const Text("Login"),
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    height: 15,
-                                  ),
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        if (formKey.currentState!.validate()) {
-                                          print('=== Login Initiated ==');
-                                          context.read<AuthBloc>().add(
-                                            AuthLogin(
-                                              email: emailController.text
-                                                  .trim(),
-                                              password: pwdController.text
-                                                  .trim(),
-                                            ),
-                                          );
-                                          print('=== User Logged In! ==');
-                                        } else {
-                                          print(
-                                              '=== User not validated! ==');
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                  'User not validated!'),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: const Text("Login"),
                                     ),
-                                  ),
-                                  const SizedBox(
-                                    height: 15,
-                                  ),
-                                ],
-                              ),
-                            ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -275,26 +284,37 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _showEmailVerificationDialog() async {
     textStyle({required bool? isTitle}) => TextStyle(
-      color: AppPalette.textColor,
-      fontFamily: isTitle! ? "$font Black" : "$font Bold"
-    );
+        color: AppPalette.textColor,
+        fontFamily: isTitle! ? "$font Black" : "$font Bold");
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title:  Text('Verify Your Email', style: textStyle(isTitle: true),),
+          title: Text(
+            'Verify Your Email',
+            style: textStyle(isTitle: true),
+          ),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('An email has been sent for verification.', style: textStyle(isTitle: false),),
-                Text('Please Verify your email address.', style: textStyle(isTitle: false),),
+                Text(
+                  'An email has been sent for verification.',
+                  style: textStyle(isTitle: false),
+                ),
+                Text(
+                  'Please Verify your email address.',
+                  style: textStyle(isTitle: false),
+                ),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Okay', style: textStyle(isTitle: false),),
+              child: Text(
+                'Okay',
+                style: textStyle(isTitle: false),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },

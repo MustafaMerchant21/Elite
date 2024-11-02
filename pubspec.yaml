@@ -49,6 +49,7 @@ dependencies:
   firebase_storage: ^12.1.0
   shared_preferences: ^2.0.6
   custom_refresh_indicator: ^4.0.1
+  flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
   flutter_test:
@@ -206,3 +207,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+# Icon

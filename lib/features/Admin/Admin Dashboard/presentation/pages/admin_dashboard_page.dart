@@ -1,8 +1,10 @@
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elite/core/constants.dart';
 import 'package:elite/core/theme/palette.dart';
+import 'package:elite/features/Admin/Admin%20Dashboard/presentation/pages/admin_settings_page.dart';
 import 'package:elite/features/Admin/Admin%20Dashboard/presentation/widgets/admin_dashboard_card.dart';
-import 'package:elite/features/auth/presentation/pages/admin_users_page.dart';
 import 'package:elite/features/auth/presentation/pages/login_page.dart';
 import 'package:elite/features/auth/presentation/widgets/dialogue_box.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,72 +25,74 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   late Future<void> _fetchDataFuture;
   List<DocumentSnapshot> _data = [];
   bool isLoading = false;
+  double appBarHeight = AppBar().preferredSize.height;
+  // App Bar
+
 
   static _rActivityItem(
           [String event = 'New Order',
           String date = '01/07/22',
           String time = '10:10']) =>
-      Row(
-        children: [
-          Column(
-            children: [
-              // Container(
-              //   width: 5,
-              //   height: 8,
-              //   decoration: BoxDecoration(
-              //       color: AppPalette.primaryColor.withAlpha(30),
-              //       borderRadius: BorderRadius.all(Radius.circular(100))
-              //   ),
-              // ),
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Image(
-                  image: AssetImage('assets/images/new_order.png'),
-                  width: 24,
-                  height: 24,
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          children: [
+            Column(
+              children: [
+                // Activity Icon
+                const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Image(
+                    image: AssetImage('assets/images/new_order.png'),
+                    width: 24,
+                    height: 24,
+                  ),
+                ),
+                // Activity data
+                Container(
+                  width: 4,
+                  height: 26,
+                  decoration: BoxDecoration(
+                      color: AppPalette.primaryColor.withAlpha(30),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(100))),
+                ),
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        event,
+                        style: TextStyle(
+                            color: AppPalette.primaryColor,
+                            fontFamily: "$font Semi Expanded Black",
+                            fontSize: 16),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "$date • $time",
+                        style: TextStyle(
+                            color: AppPalette.primaryColor,
+                            fontFamily: "$font Semi Expanded Bold",
+                            fontSize: 12),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    )
+                  ],
                 ),
               ),
-              Container(
-                width: 4,
-                height: 26,
-                decoration: BoxDecoration(
-                    color: AppPalette.primaryColor.withAlpha(30),
-                    borderRadius: BorderRadius.all(Radius.circular(100))),
-              ),
-
-              /// Images based on event
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      event,
-                      style: TextStyle(
-                          color: AppPalette.primaryColor,
-                          fontFamily: "$font Semi Expanded Black",
-                          fontSize: 14),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "$date • $time",
-                      style: TextStyle(
-                          color: AppPalette.primaryColor,
-                          fontFamily: "$font Semi Expanded Bold",
-                          fontSize: 12),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       );
 
   @override
@@ -127,7 +131,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           onConfirm: () {
             Navigator.of(context).pop(); // Close the dialog
             signOut(context);
-          }, isLoading: false,
+          },
+          isLoading: false,
         );
       },
     );
@@ -138,6 +143,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return isLoading
         ? Loading()
         : Scaffold(
+            extendBodyBehindAppBar: true,
             floatingActionButton: FloatingActionButton(
               onPressed: () => _showSignOutConfirmationDialog(),
               backgroundColor: AppPalette.primaryColor,
@@ -145,79 +151,58 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: const Icon(Icons.logout_rounded),
             ),
             backgroundColor: AppPalette.backgroundColor,
-            appBar: AppBar(
-              backgroundColor: AppPalette.backgroundColor,
-              title: const Text(
-                "Dashboard",
-                style:
-                    TextStyle(fontFamily: "$font Expanded Heavy", fontSize: 15),
-              ),
-              centerTitle: true,
-              foregroundColor: AppPalette.textColor,
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: IconButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (context) => const AdminUsersPage()),
-                        );
+            appBar: appbar(context, "Dashboard"),
+            body: RefreshIndicator(
+              onRefresh: _refresh,
+              displacement: 100,
+              color: AppPalette.backgroundColor,
+              backgroundColor: AppPalette.primaryColor,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: FutureBuilder<void>(
+                      future: _fetchDataFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(height: appBarHeight+20,),
+                                LoadingAnimationWidget.horizontalRotatingDots(
+                                    color: AppPalette.textColor, size: 30),
+                              ],
+                            ),
+                          );
+                        } else if (snapshot.hasError) {
+                          return const Center(
+                            child: Text(
+                              "Error Fetching data",
+                              style: TextStyle(color: AppPalette.textColor),
+                            ),
+                          );
+                        } else {
+                          return _dashboardBody(
+                              FirebaseAuth.instance.currentUser!);
+                        }
                       },
-                      icon: Icon(Icons.supervised_user_circle_rounded)),
-                )
-              ],
-            ),
-            body: Stack(children: [
-              RefreshIndicator(
-                onRefresh: _refresh,
-                color: AppPalette.backgroundColor,
-                backgroundColor: AppPalette.primaryColor,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: FutureBuilder<void>(
-                        future: _fetchDataFuture,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  LoadingAnimationWidget.horizontalRotatingDots(
-                                      color: AppPalette.textColor, size: 30),
-                                ],
-                              ),
-                            );
-                          } else if (snapshot.hasError) {
-                            return const Center(
-                              child: Text(
-                                "Error Fetching data",
-                                style: TextStyle(color: AppPalette.textColor),
-                              ),
-                            );
-                          } else {
-                            return _dashboardBody(
-                                FirebaseAuth.instance.currentUser!);
-                          }
-                        },
-                      ),
                     ),
                   ),
                 ),
               ),
-            ]),
+            ),
           );
   }
 
   Widget _dashboardBody(User user) {
     return Column(
       children: <Widget>[
+        SizedBox(height: appBarHeight,),
         const SizedBox(
-          height: 16,
+          height: 30,
         ),
         Align(
           alignment: Alignment.centerLeft,
@@ -296,6 +281,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
         Column(
           children: [
+            _rActivityItem(),
+            _rActivityItem(),
             _rActivityItem(),
             _rActivityItem(),
           ],

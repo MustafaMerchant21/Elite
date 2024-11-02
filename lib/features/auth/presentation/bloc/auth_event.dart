@@ -26,10 +26,3 @@ final class AuthLogin extends AuthEvent {
     required this.password,
   });
 }
-
-final class AuthAdmin extends AuthEvent {
-  final String email;
-  final String password;
-
-  const AuthAdmin({required this.email, required this.password});
-}

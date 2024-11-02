@@ -22,24 +22,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       body: DefaultTabController(
         length: 3,
         child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: AppPalette.backgroundColor,
-            title: const Text(
-              "Users",
-              style:
-                  TextStyle(fontFamily: "$font Expanded Heavy", fontSize: 15),
-            ),
-            centerTitle: true,
-            foregroundColor: AppPalette.textColor,
-            leading: IconButton(
-              constraints: const BoxConstraints(),
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: AppPalette.primaryColor,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ),
+          appBar: appbar(context, "Users"),
           body: Expanded(
             child: Column(
               children: [
@@ -105,10 +88,10 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   overlayColor: WidgetStateProperty.all<Color>(
                       AppPalette.primaryColor.withAlpha(10)),
                   labelStyle:
-                      const TextStyle(fontFamily: "$font Semi Expanded Black"),
+                  const TextStyle(fontFamily: "$font Semi Expanded Black"),
                   labelColor: AppPalette.primaryColor,
                   unselectedLabelColor:
-                      AppPalette.primaryColor.withOpacity(0.5),
+                  AppPalette.primaryColor.withOpacity(0.5),
                   indicatorColor: AppPalette.primaryColor,
                   tabs: const [
                     Tab(text: 'Customers'),

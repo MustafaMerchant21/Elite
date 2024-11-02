@@ -1,48 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:elite/core/secrets/app_secrets.dart';
-import 'package:elite/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:elite/features/auth/data/repository/auth_repository_impl.dart';
-import 'package:elite/features/auth/domain/usecases/user_login.dart';
-import 'package:elite/features/auth/domain/usecases/user_signup.dart';
 import 'package:elite/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:elite/features/auth/presentation/pages/wrapper.dart';
 import 'package:elite/features/auth/presentation/widgets/splash_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:elite/init-dependencies.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:elite/core/theme/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 
-import 'features/auth/presentation/pages/onboarding.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Supabase initialization
-  final supabase = await Supabase.initialize(
-      url: AppSecrets.supabaseUrl, anonKey: AppSecrets.anonKey);
-  // Firebase initialization
   await Firebase.initializeApp();
-  final firebaseAuth = FirebaseAuth.instance;
-  final firebaseStorage = FirebaseStorage.instance;
-  final db = FirebaseFirestore.instance;
+  initDependencies();
   runApp(MultiBlocProvider(
     providers: [
       BlocProvider(
-        create: (_) => AuthBloc(
-          userSignup: UserSignup(
-            AuthRepositoryImpl(
-              AuthRemoteDatasourceImpl(firebaseAuth, firebaseStorage),
-            ),
-          ),
-          userLogin: UserLogin(
-          AuthRepositoryImpl(
-            AuthRemoteDatasourceImpl(firebaseAuth, firebaseStorage)
-          )
-        ),
-        ),
+        create: (_) => serviceLocator<AuthBloc>(),
       ),
     ],
     child: const MyApp(),
@@ -78,7 +51,8 @@ class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
   }
 
   Future<void> _navigateToWrapper() async {
-    await Future.delayed(const Duration(seconds: 3)); // Adjust the duration if needed
+    await Future.delayed(
+        const Duration(seconds: 3)); // Adjust the duration if needed
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const Wrapper()),
     );

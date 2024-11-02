@@ -1,7 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:elite/core/error/exceptions.dart';
 import 'package:elite/core/error/failure.dart';
 import 'package:elite/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:elite/features/auth/domain/entity/user.dart';
 
 import 'package:fpdart/fpdart.dart';
 
@@ -13,31 +12,38 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this.authRemoteDatasource);
 
   @override
-  Future<Either<Failure, String>> loginWithEmailPassword({
+  Future<Either<Failure, User>> loginWithEmailPassword({
     required String email,
     required String password
   }) async {
     try {
-      final userId = await authRemoteDatasource.loginWithEmailPassword(
+      final user = await authRemoteDatasource.loginWithEmailPassword(
           email: email, password: password);
-      return right(userId);
-    } on ServerException catch (e) {
-      return left(Failure("*** ${e.message} ***"));
+      return right(user);
+    } catch (e) {
+      return left(Failure(e.toString()));
     }
+    // return _getUser(() async => authRemoteDatasource.loginWithEmailPassword(
+    //     email: email, password: password));
   }
 
   @override
-  Future<Either<Failure, String>> signUpWithEmailPassword({
+  Future<Either<Failure, User>> signUpWithEmailPassword({
     required String name,
     required String email,
     required String password
   }) async {
+    return _getUser(() async => authRemoteDatasource.signUpWithEmailPassword(
+        name: name, email: email, password: password));
+  }
+
+  // Wrapper fn
+  Future<Either<Failure, User>> _getUser(Future<User> Function() fn) async {
     try {
-      final userId = await authRemoteDatasource.signUpWithEmailPassword(
-          name: name, email: email, password: password);
-      return right(userId);
+      final user = await fn();
+      return right(user);
     } catch (e) {
-      return left(Failure("*** ${e.toString()} ***"));
+      return left(Failure(e.toString()));
     }
   }
 }
